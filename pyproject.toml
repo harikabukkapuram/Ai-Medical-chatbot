@@ -1,0 +1,28 @@
+[project]
+name = "ai-medical-assistant"
+version = "0.1.0"
+description = "Streamlit-based AI Medical Diagnosis Assistant with multilingual support"
+authors = [
+    { name = "Harika Bukkapuram", email = "HarikaBukkapuram@gmail.com" }
+]
+readme = "README.md"
+license = { text = "AGPL-3.0-or-later" }
+requires-python = ">=3.9"
+
+dependencies = [
+    "streamlit",
+    "googletrans==4.0.0-rc1",
+    "pandas",
+    "scikit-learn",
+    "ruff",
+    "python-dotenv"
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.ruff]
+line-length = 88
+target-version = "py39"
+select = ["E", "F", "I"]

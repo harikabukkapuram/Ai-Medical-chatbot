@@ -8,11 +8,11 @@ app_port: 7860
 tags:
 - streamlit
 pinned: false
-short_description: 'AI medical diagnostic chatbot will diagnosis the symptoms '
+short_description: 'Medical Bot will diagnosis the symptoms '
 license: mit
 ---
 
-# 🧠 AI Medical Diagnostic Chatbot
+# 🧠 Medical Bot
 
 This is a Flask-based AI-powered Medical Diagnostic Chatbot that dynamically interacts with users, gathers symptom details, and suggests possible conditions based on a rule-based symptom matching system.
 

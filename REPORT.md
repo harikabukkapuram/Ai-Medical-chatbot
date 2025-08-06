@@ -1,4 +1,4 @@
-title: AI Medical Diagnostic Chatbot – viswam.ai Report
+title: Medical Bot – viswam.ai Report
 emoji: 🧠
 colorFrom: indigo
 colorTo: blue
@@ -7,9 +7,9 @@ app_file: app.py
 pinned: false
 ---
 
-# 🧠 AI Medical Diagnosis Assistant – viswam.ai Open-Source Challenge Report
+# 🧠 Medical Bot – viswam.ai Open-Source Challenge Report
 
-## Team Name: AI Medivision
+## Team Name: dreamhack
 
 ## Team Members:
 
@@ -25,10 +25,10 @@ Member 5: [reddykeerthi] – Backend & Optimization
 
 # Application Overview
 
-## Project Title: AI Medical Diagnosis Assistant
+## Project Title: Medical ChatBot
 
 ### Problem Statement: 
-Many individuals in rural or underserved areas lack access to quick and basic medical advice. Our AI Medical Diagnosis Assistant offers a simple interface where users can describe their symptoms and receive instant, preliminary medical guidance in their local language.
+Many individuals in rural or underserved areas lack access to quick and basic medical advice. Our Medical ChatBot offers a simple interface where users can describe their symptoms and receive instant, preliminary medical guidance in their local language.
 
 ### Minimum Viable Product (MVP):
 A lightweight, multilingual Streamlit-based chatbot that accepts user symptoms via text input and provides possible diagnoses or suggestions, using an offline-first, open-source AI backend.
@@ -198,4 +198,4 @@ NGO and health startup collaborations
 - **Domain**: Healthcare / Medical AI
 - **App**: Streamlit web application
 - **Deployed on**: Hugging Face Spaces using Docker in the streamlit template
-
+- **GitHub**: https://github.com/harikabukkapuram/Ai-Medical-chatbot

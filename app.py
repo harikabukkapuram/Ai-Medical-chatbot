@@ -2,34 +2,52 @@ import streamlit as st
 from chatbot.data_loader import load_conditions
 from chatbot.symptom_extractor import extract_symptoms
 from chatbot.diagnosis import format_diagnosis, evaluate_confirmed_conditions, save_log
+from chatbot.translator import translate_text
+import os
 import random
+import time
+
+# Ensure logs directory exists
+os.makedirs("logs", exist_ok=True)
+
+langs = {
+    "English": "en",
+    "हिन्दी (Hindi)": "hi",
+    "తెలుగు (Telugu)": "te",
+    "தமிழ் (Tamil)": "ta",
+    "ಕನ್ನಡ (Kannada)": "kn",
+    "বাংলা (Bengali)": "bn"
+}
+
+selected_language = st.selectbox("Choose your language:", list(langs.keys()))
+lang_code = langs[selected_language]
+st.session_state.lang = lang_code
 
 conditions = load_conditions()
-st.set_page_config(page_title="🧠 Medical Assistant", layout="centered")
-st.title("🩺 Medical Assistant")
+st.set_page_config(page_title="Medical Diagnosis", layout="centered")
+st.title(translate_text("Medical Diagnosis", src="en", dest=lang_code))
 
-# Step 1: Handle user info first
 if "chat_started" not in st.session_state:
     st.session_state.chat_started = False
     st.session_state.user_data = {"name": "", "age": 0, "gender": ""}
 
 if not st.session_state.chat_started:
     with st.form("user_info_form"):
-        st.session_state.user_data["name"] = st.text_input("Enter your name:")
-        st.session_state.user_data["age"] = st.number_input("Enter your age:", min_value=1, max_value=120, step=1)
-        st.session_state.user_data["gender"] = st.selectbox("Select your gender:", ["Male", "Female", "Other"])
-        submitted = st.form_submit_button("Start Chat")
+        st.session_state.user_data["name"] = st.text_input(translate_text("Enter your name:", src="en", dest=lang_code))
+        st.session_state.user_data["age"] = st.number_input(translate_text("Enter your age:", src="en", dest=lang_code), min_value=1, max_value=120, step=1)
+        st.session_state.user_data["gender"] = st.selectbox(
+            translate_text("Select your gender:", src="en", dest=lang_code), ["Male", "Female", "Other"]
+        )
+        submitted = st.form_submit_button(translate_text("Start Chat", src="en", dest=lang_code))
 
     if submitted:
         if st.session_state.user_data["name"] and st.session_state.user_data["age"] and st.session_state.user_data["gender"]:
             st.session_state.chat_started = True
             st.rerun()
         else:
-            st.warning("⚠️ Please fill in all fields to proceed.")
+            st.warning(translate_text("⚠️ Please fill in all fields to proceed.", src="en", dest=lang_code))
 
-# Step 2: Start chat logic
 if st.session_state.chat_started:
-    # Initialize session states
     if "qa_log" not in st.session_state:
         st.session_state.qa_log = []
     if "chat" not in st.session_state:
@@ -42,47 +60,30 @@ if st.session_state.chat_started:
         st.session_state.negatives = {}
         st.session_state.follow_up = 0
 
-    # Display chat history
     for entry in st.session_state.chat:
         with st.chat_message(entry["role"]):
             st.markdown(entry["message"])
 
-    user_input = st.chat_input("Describe your symptoms...", key="symptom_input")
-
+    user_input = st.chat_input(translate_text("Enter your symptoms", src="en", dest=lang_code))
     if user_input:
+        translated_input = translate_text(user_input, src=lang_code, dest='en')
+
         with st.chat_message("user"):
             st.markdown(user_input)
         st.session_state.chat.append({"role": "user", "message": user_input})
 
-        # Phase 1: Symptom input
         if st.session_state.phase == "symptom_input":
-            symptoms = extract_symptoms(user_input)
+            symptoms = extract_symptoms(translated_input)
             if not symptoms:
                 reply = "😕 I couldn't understand your symptoms. Please try again."
             else:
                 st.session_state.symptoms = symptoms
-
-                # First try to find conditions with ALL symptoms
-                all_match = []
-                for cond in conditions:
-                    cond_syms = [s.lower() for s in cond.get("symptoms", [])]
-                    if all(sym in cond_syms for sym in symptoms):
-                        all_match.append(cond)
-
-                # Fallback to ANY symptom match
-                matches = all_match
-                if not all_match:
-                    any_match = []
-                    for cond in conditions:
-                        cond_syms = [s.lower() for s in cond.get("symptoms", [])]
-                        if any(sym in cond_syms for sym in symptoms):
-                            any_match.append(cond)
-                    matches = any_match
+                all_match = [cond for cond in conditions if all(sym in [s.lower() for s in cond.get("symptoms", [])] for sym in symptoms)]
+                matches = all_match or [cond for cond in conditions if any(sym in [s.lower() for s in cond.get("symptoms", [])] for sym in symptoms)]
 
                 if not matches:
                     reply = "😕 No relevant conditions found for your symptoms."
                 else:
-                    # Get questions from matches
                     question_set = []
                     condition_map = {}
                     for cond in matches:
@@ -102,66 +103,81 @@ if st.session_state.chat_started:
                         st.session_state.follow_up = 0
                         st.session_state.confirmed = {}
                         st.session_state.negatives = {}
-                        reply = f"🤔 {question_set[0]} (yes/no)"
+                        reply = f"🧐 {question_set[0]} (yes/no)"
 
-            st.chat_message("assistant").markdown(reply)
-            st.session_state.chat.append({"role": "assistant", "message": reply})
+            translated_msg = translate_text(reply, src='en', dest=lang_code)
+            st.chat_message("assistant").markdown(translated_msg)
+            st.session_state.chat.append({"role": "assistant", "message": translated_msg})
+            st.stop()
 
-        # Phase 2: Follow-up Q&A
         elif st.session_state.phase == "followup":
             answer = user_input.strip().lower()
-            if answer not in ["yes", "no"]:
+            yes_no_map = {
+                "yes": "yes", "no": "no",
+                "అవును": "yes", "లేదు": "no",
+                "हाँ": "yes", "नहीं": "no",
+                "हां": "yes", "नहीं": "no",
+                "ஆம்": "yes", "இல்லை": "no",
+                "ಹೌದು": "yes", "ಇಲ್ಲ": "no",
+                "হ্যাঁ": "yes", "না": "no"
+            }
+            mapped_answer = yes_no_map.get(answer)
+
+            if mapped_answer not in ["yes", "no"]:
                 msg = "❗ Please answer with 'yes' or 'no'."
-                st.chat_message("assistant").markdown(msg)
-                st.session_state.chat.append({"role": "assistant", "message": msg})
+                translated_msg = translate_text(msg, src='en', dest=lang_code)
+                st.chat_message("assistant").markdown(translated_msg)
+                st.session_state.chat.append({"role": "assistant", "message": translated_msg})
+                st.stop()
+
+            current_question = st.session_state.questions[st.session_state.follow_up]
+            condition_name = st.session_state.condition_map.get(current_question, "")
+            st.session_state.qa_log.append({"question": current_question, "answer": mapped_answer})
+
+            if mapped_answer == "yes":
+                st.session_state.confirmed[condition_name] = st.session_state.confirmed.get(condition_name, 0) + 1
             else:
-                current_question = st.session_state.questions[st.session_state.follow_up]
-                condition_name = st.session_state.condition_map.get(current_question, "")
+                st.session_state.negatives[condition_name] = st.session_state.negatives.get(condition_name, 0) + 1
 
-                st.session_state.qa_log.append({
-                    "question": current_question,
-                    "answer": answer
-                })
-
-                if answer == "yes":
-                    st.session_state.confirmed[condition_name] = st.session_state.confirmed.get(condition_name, 0) + 1
-                else:
-                    st.session_state.negatives[condition_name] = st.session_state.negatives.get(condition_name, 0) + 1
-
-                # End early if confirmed
-                if st.session_state.confirmed.get(condition_name, 0) >= 3:
-                    condition = next((c for c in st.session_state.conditions if c["name"] == condition_name), None)
-                    if condition:
-                        diagnosis = format_diagnosis(condition)
-                        st.chat_message("assistant").markdown(diagnosis)
-                        st.session_state.chat.append({"role": "assistant", "message": diagnosis})
-                        st.session_state.phase = "done"
-                        save_log(diagnosis)
-                        st.stop()
-
-                # Skip next questions if already 2 NOs
-                while True:
-                    st.session_state.follow_up += 1
-                    if st.session_state.follow_up >= len(st.session_state.questions):
-                        break
-                    next_q = st.session_state.questions[st.session_state.follow_up]
-                    next_cond = st.session_state.condition_map.get(next_q, "")
-                    if st.session_state.negatives.get(next_cond, 0) < 2:
-                        break
-
-                if st.session_state.follow_up < len(st.session_state.questions):
-                    next_q = st.session_state.questions[st.session_state.follow_up]
-                    bot_msg = f"🤔 {next_q} (yes/no)"
-                else:
-                    # End of Q&A
-                    diagnosis_text = evaluate_confirmed_conditions(
-                        st.session_state.confirmed, st.session_state.conditions
-                    )
-                    st.chat_message("assistant").markdown(diagnosis_text)
-                    st.session_state.chat.append({"role": "assistant", "message": diagnosis_text})
+            if st.session_state.confirmed.get(condition_name, 0) >= 3:
+                condition = next((c for c in st.session_state.conditions if c["name"] == condition_name), None)
+                if condition:
+                    diagnosis = format_diagnosis(condition)
+                    translated_diagnosis = translate_text(diagnosis, src='en', dest=lang_code)
+                    st.chat_message("assistant").markdown(translated_diagnosis)
+                    st.session_state.chat.append({"role": "assistant", "message": translated_diagnosis})
                     st.session_state.phase = "done"
-                    save_log(diagnosis_text)
+                    try:
+                        save_log(diagnosis)
+                    except Exception as e:
+                        st.warning(f"Log save failed: {e}")
                     st.stop()
 
-                st.chat_message("assistant").markdown(bot_msg)
-                st.session_state.chat.append({"role": "assistant", "message": bot_msg})
+            while True:
+                st.session_state.follow_up += 1
+                if st.session_state.follow_up >= len(st.session_state.questions):
+                    break
+                next_q = st.session_state.questions[st.session_state.follow_up]
+                next_cond = st.session_state.condition_map.get(next_q, "")
+                if st.session_state.negatives.get(next_cond, 0) < 2:
+                    break
+
+            if st.session_state.follow_up < len(st.session_state.questions):
+                next_q = st.session_state.questions[st.session_state.follow_up]
+                bot_msg = f"🧐 {next_q} (yes/no)"
+                translated_bot_msg = translate_text(bot_msg, src='en', dest=lang_code)
+                st.chat_message("assistant").markdown(translated_bot_msg)
+                st.session_state.chat.append({"role": "assistant", "message": translated_bot_msg})
+            else:
+                diagnosis_text = evaluate_confirmed_conditions(
+                    st.session_state.confirmed, st.session_state.conditions
+                )
+                translated_diagnosis = translate_text(diagnosis_text, src='en', dest=lang_code)
+                st.chat_message("assistant").markdown(translated_diagnosis)
+                st.session_state.chat.append({"role": "assistant", "message": translated_diagnosis})
+                st.session_state.phase = "done"
+                try:
+                    save_log(diagnosis_text)
+                except Exception as e:
+                    st.warning(f"Log save failed: {e}")
+                st.stop()

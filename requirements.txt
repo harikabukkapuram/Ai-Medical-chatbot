@@ -1,7 +1,8 @@
-streamlit
-pandas
 numpy
+SpeechRecognition
+pandasFlask
+Werkzeug
 scikit-learn
-nltk
-spacy
-openpyxl
+pyttsx3
+Flask-Cors
+gTTS

@@ -1,6 +1,6 @@
 # 🌐 User Acquisition Strategy Document
 
-**Project Name:** 🩺 *AI Medical Diagnostic Chatbot*
+**Project Name:** 🩺 *Medical Bot*
 **Tagline:** *“Talk to a doctor, even when one isn’t nearby.”*
 
 ---

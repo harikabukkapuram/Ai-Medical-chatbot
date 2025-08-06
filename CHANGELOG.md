@@ -9,7 +9,7 @@ and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [1.0.0] - 2025-07-22
 ### Added
-- Initial release of the AI Medical Diagnostic Chatbot.
+- Initial release of the Medical Bot.
 - Flask backend with dynamic chat-based symptom diagnosis.
 - Session-based tracking of questions and conditions.
 - Voice input support for user symptoms.

@@ -1,10 +1,10 @@
 ### 📄 CONTRIBUTING.md
 
-# Contributing to AI Medical Diagnostic Chatbot
+# Contributing to Medical Bot
 
 Thanks for your interest in contributing! 🎉
 
-This document outlines the process for contributing to the **AI Medical Diagnostic Chatbot**, including bug fixes, feature proposals, and more.
+This document outlines the process for contributing to the **Medical Bot**, including bug fixes, feature proposals, and more.
 
 ## 🚀 How to Contribute
 
