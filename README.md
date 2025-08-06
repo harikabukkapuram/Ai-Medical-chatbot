@@ -14,7 +14,7 @@ license: mit
 
 # 🧠 Medical Bot
 
-This is a Flask-based AI-powered Medical Diagnostic Chatbot that dynamically interacts with users, gathers symptom details, and suggests possible conditions based on a rule-based symptom matching system.
+This is a Flask-based AI-powered Medical Chatbot that dynamically interacts with users, gathers symptom details, and suggests possible conditions based on a rule-based symptom matching system.
 
 ## 🚀 Features
 
@@ -66,3 +66,4 @@ Deployed on Hugging Face Spaces using Docker and .huggingface.yml.
 
 📃 License
 This project is licensed under the MIT License. See LICENSE for more information.
+
